@@ -1,8 +1,9 @@
 module Piece exposing (..)
 
-type Color = Blue | White
+import Geometry exposing (Position)
 
-type alias Position = { x : Int, y : Int }
+type Color = Blue | Yellow
+
 type alias Piece = { position : Position, color : Color, crowned : Bool, alive : Bool }
 
 createPiece : Color -> Position -> Piece

@@ -1,62 +1,35 @@
 module Views exposing (..)
 
-import Color exposing (..)
+import Array exposing (Array, toList, indexedMap)
 
 import Html exposing (table, tr, td, h3, div, text, Html)
 import Html.Attributes exposing (style)
 
-import Style exposing (..)
-
+import Geometry exposing (Position)
 import Board
 
-type alias Styles = List (String, String)
+import Styling exposing (..)
 
-solidBorder : Styles
-solidBorder = [border (px 10), border solid]
-
-tdStyle : Styles
-tdStyle = List.append solidBorder [width (px 50), height (px 50)]
-
-tdBlue : Styles
-tdBlue = List.append tdStyle [backgroundColor (color_ blue)]
-
-tdBlack : Styles
-tdBlack = List.append tdStyle [backgroundColor (color_ black)]
-
-newCol : Html a
-newCol = td [style tdStyle] []
-
-newBlackCol : Html a
-newBlackCol = td [style tdBlack] []
-
-colorize : Int -> Html a -> Html a
-colorize idx elem =
-    if idx % 2 == 0 then newBlackCol else elem
-
-colorizeOdd : Int -> Html a -> Html a
-colorizeOdd idx elem =
-    if (idx % 2) /= 0 then newBlackCol else elem
-
-colorizeSquares : Int -> List (Html a) -> List (Html a)
-colorizeSquares r tds =
-    if (r % 2 == 0) then (List.indexedMap colorize tds) else (List.indexedMap colorizeOdd tds)
-
-renderRow : Int -> Board.Model -> Html a
-renderRow r board =
+whichColor : Int -> Int -> Styles
+whichColor r c =
     let
-      tds = List.repeat board.dimensions.x newCol
-      colorized = colorizeSquares r tds
+      even i = i % 2 == 0
+      colorize b = if b then tdBlack else tdStyle
     in
-        tr [style solidBorder] colorized
+      if (even r) then (colorize (even c)) else (colorize (not (even c)))
 
-renderRows : Int -> Board.Model -> List (Html a)
-renderRows r board =
-    if r > 0 then (renderRow r board) :: (renderRows (r - 1) board) else []
+renderCell : Int -> Int -> Position -> Html a
+renderCell r c position =
+      td [style (whichColor r c)] []
+
+renderRow : Int -> Array Position -> Html a
+renderRow idx cells =
+    tr [style solidBorder] (List.indexedMap (renderCell idx) (toList cells))
 
 renderBoard : Board.Model -> Html a
 renderBoard board =
     let
-        rows = renderRows board.dimensions.y board
+      rows = List.indexedMap renderRow (toList board.cells)
     in
       Html.table [style solidBorder] rows
 
