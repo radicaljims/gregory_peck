@@ -59,7 +59,7 @@ defaultBoard =
     in
       { dimensions = defaultDimensions, cells = cells, pieces = pieces, movement = Nothing }
 
-type Msg = NoOp | Clicked Position
+type Msg = NoOp | Clicked Position | ClickClear
 
 
 -- TODO: after each move we will have to test if another attack is possible, and not auto switch sides
@@ -81,7 +81,7 @@ check_neighbor color neighbor pieces =
 legal : Piece -> Position -> Position -> Pieces -> (Bool, Pieces)
 legal piece (old_x, old_y) (new_x, new_y) pieces =
 
-  if (Dict.member (Debug.log "ho" (new_x, new_y)) pieces)
+  if (Dict.member (new_x, new_y) pieces)
     then
       (False, pieces)
     else
@@ -95,7 +95,7 @@ legal piece (old_x, old_y) (new_x, new_y) pieces =
                   nx = if piece.color == Blue then old_x - (sign (old_x - new_x)) else old_x + (sign (new_x - old_x))
                   ny = old_y - directionCompensation
               in
-                  check_neighbor piece.color (Debug.log "hi" (nx, ny)) pieces
+                  check_neighbor piece.color (nx, ny) pieces
               else
                   (abs (old_x - new_x) == 1 && (directionCompensation * (old_y - new_y)) == 1, pieces)
 
@@ -113,21 +113,27 @@ update msg model =
                     { model | movement = Just { position = position }}
 
                 Just movement ->
+                    if position == movement.position
+                        then
+                          model
 
-                    case Dict.get movement.position model.pieces of
-                        Nothing -> { model | movement = Nothing }
+                        else
+                          case Dict.get movement.position model.pieces of
+                              Nothing -> { model | movement = Nothing }
 
-                        Just a_piece ->
-
-                            let
-                                (was_legal, new_pieces) = legal a_piece movement.position position model.pieces
-                            in
-                              if was_legal
-                                  then
+                              Just a_piece ->
+                                let
+                                  (was_legal, new_pieces) = legal a_piece movement.position position model.pieces
+                                in
+                                  if was_legal
+                                    then
                                       let
-                                          updated = Dict.insert position a_piece new_pieces
-                                          cleaned = Dict.remove movement.position updated
+                                        updated = Dict.insert position a_piece new_pieces
+                                        cleaned = Dict.remove movement.position updated
                                       in
-                                          { model | movement = Nothing, pieces = cleaned }
-                                  else
-                                      { model | movement = Nothing }
+                                        { model | movement = Nothing, pieces = cleaned }
+                                    else
+                                        { model | movement = Nothing }
+
+        ClickClear ->
+            { model | movement = Nothing }
