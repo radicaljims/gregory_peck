@@ -47,7 +47,7 @@ renderBoard board =
     let
       rows = List.indexedMap (renderRow board.pieces) (toList board.cells)
     in
-      Html.table [style solidBorder, style columnLayout] rows
+      Html.table [] rows
 
 renderScore : Board.Model -> Html Msg
 renderScore board =

@@ -12,20 +12,6 @@ centeredLayout =
   , alignItems center
   ]
 
-centeredLayout2 : List Style
-centeredLayout2 =
-  [ justifyContent center
-  , alignItems center
-  ]
-
-columnLayout : Styles
-columnLayout =
-  [ justifyContent center
-  , alignItems center
-  , width (px 550)
-  , height (px 550)
-  ]
-
 solidBorder : Styles
 solidBorder = [border (px 10), border solid]
 
