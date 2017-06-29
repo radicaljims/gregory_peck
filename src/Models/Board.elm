@@ -62,59 +62,42 @@ defaultBoard =
 type Msg = NoOp | Clicked Position
 
 
--- type MoveType = Illegal | Move | Attack
-
 -- TODO: after each move we will have to test if another attack is possible, and not auto switch sides
 -- since I think I read a player HAS to take all jumps
+
+check_neighbor : Piece.Color -> Position -> Pieces -> (Bool, Pieces)
+check_neighbor color neighbor pieces =
+
+  case Dict.get neighbor pieces of
+      Nothing ->
+          (False, pieces)
+
+      Just a_piece ->
+          if a_piece.color /= color then
+              (True, Dict.remove neighbor pieces) else
+              (False, pieces)
+
+
 legal : Piece -> Position -> Position -> Pieces -> (Bool, Pieces)
 legal piece (old_x, old_y) (new_x, new_y) pieces =
 
-    -- We can't jump on people!
-    if (Dict.member (new_x, new_y) pieces) then (False, pieces)
-        else
+  if (Dict.member (Debug.log "ho" (new_x, new_y)) pieces)
+    then
+      (False, pieces)
+    else
 
-          case piece.color of
-
-              -- TODO: bounds checking!
-              -- TODO: will eventually need to consider crowned pieces
-              -- TODO: need to handle jump moves, which entails modifying pieces so we'd
-              -- have to return that out of here so model could be updated
-              -- Or just return a move type out of here: Illegal, Legal, Attack?
-              Blue ->
-
-                  -- TODO: I should sit down and sort out how the + and -'s switch as you move up and down the grid
-                  if abs (old_x - new_x) == 2 && old_y - new_y == -2 then
-                      let
-                          neighbor = (old_x - (1 * sign (old_x - new_x)), old_y + 1)
-                      in
-                          case Dict.get neighbor pieces of
-                              Nothing ->
-                                  (False, pieces)
-
-                              Just a_piece ->
-                                  if a_piece.color /= Blue then
-                                      (True, Dict.remove neighbor pieces) else
-                                      (False, pieces)
-
-                      else
-                          (abs (old_x - new_x) == 1 && old_y - new_y == -1, pieces)
-
-              Yellow ->
-                  if abs (old_x - new_x) == 2 && old_y - new_y == 2 then
-                      let
-                          neighbor = (old_x + (1 * sign (new_x - old_x)), old_y - 1)
-                      in
-                          case Dict.get neighbor pieces of
-                              Nothing ->
-                                  (False, pieces)
-
-                              Just a_piece ->
-                                  if a_piece.color /= Yellow then
-                                      (True, Dict.remove neighbor pieces) else
-                                      (False, pieces)
-
-                      else
-                          (abs (old_x - new_x) == 1 && old_y - new_y == 1, pieces)
+      let
+          -- TODO: account for crowning
+          directionCompensation = if piece.color == Blue then -1 else 1
+      in
+          if abs (old_x - new_x) == 2 && (directionCompensation * (old_y - new_y)) == 2 then
+              let
+                  nx = if piece.color == Blue then old_x - (sign (old_x - new_x)) else old_x + (sign (new_x - old_x))
+                  ny = old_y - directionCompensation
+              in
+                  check_neighbor piece.color (Debug.log "hi" (nx, ny)) pieces
+              else
+                  (abs (old_x - new_x) == 1 && (directionCompensation * (old_y - new_y)) == 1, pieces)
 
 
 update : Msg -> Model -> Model
